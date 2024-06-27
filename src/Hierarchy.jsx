@@ -34,7 +34,7 @@ const HierarchyItem = React.forwardRef(({ name, children, onClick, isSelected, s
             textAlign: 'left',
             cursor: 'pointer',
             padding: '0',
-            color: 'black',
+            color: 'white',
           }}
           title={name} // Show full name on hover
           ref={ref}

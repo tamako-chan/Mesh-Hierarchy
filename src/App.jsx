@@ -20,19 +20,12 @@ export default function App() {
       handleImport(file);
     }
   };
-  const handlesearch = () => {
-    const searchInput = document.querySelector('input[type="text"]');
-    const search = searchInput.value.trim();
-    console.log("Search value:", search);
-  };
-  
+
   return (
     <div className='scene'>
       <div className='sidebar' id='sidebar'>
-        <div className='searchbar' id='searchbar'>
-        </div>
-        <div className='hierarchy' id='hierarchy'>
-        </div>
+        <div className='searchbar' id='searchbar'></div>
+        <div className='hierarchy' id='hierarchy'></div>
       </div>
 
       <div className='viewport'>
@@ -41,16 +34,18 @@ export default function App() {
           onChange={handleFileChange} 
           accept=".glb, .gltf"
         />
-        <Canvas camera={{ position: [2, 2, 2] }}>
+        <Canvas camera={{ position: [2, 2, 2] }} style={{ background: '#242222' }}>
           <ambientLight intensity={0.1} />
-          <directionalLight color="red" position={[0, 0, 5]} />
+          <directionalLight color="white" position={[2, 2, 2]} intensity={10}/>
+          <directionalLight color="white" position={[2,2,-2]} intensity={10}/>
+          <directionalLight color="white" position={[-2,2,2]} intensity={10}/>
+          <directionalLight color="white" position={[-2,-2,-2]} intensity={10}/>
           {importedScenes.map((scene, index) => (
             <Scene key={index} importedScene={scene} />
           ))}
           <OrbitControls />
         </Canvas>
-        <div className='accessbar' id='accessbar'>
-        </div>  
+        <div className='accessbar' id='accessbar'></div>
       </div>
     </div>
   );

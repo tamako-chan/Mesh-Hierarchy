@@ -7,11 +7,11 @@ import { Clock } from 'three';
 
 extend({ EffectComposer, RenderPass, OutlinePass });
 
-const MeshSelection = ({ selectedObject }) => {
+const MeshSelection = ({ selectedObject, selectedMeshName }) => {
   const { scene, camera, gl, size } = useThree();
   const [composer] = useState(() => new EffectComposer(gl));
   const [outlinePass] = useState(() => new OutlinePass(size, scene, camera));
-  const [clickedObject, setClickedObject] = useState(null);
+  const [selectedObjects, setSelectedObjects] = useState([]);
   const hoveredObjectRef = useRef(null);
   const clock = new Clock();
 
@@ -19,14 +19,19 @@ const MeshSelection = ({ selectedObject }) => {
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     composer.addPass(outlinePass);
-  }, [composer, scene, camera]);
+
+    return () => {
+      composer.removePass(renderPass);
+      composer.removePass(outlinePass);
+    };
+  }, [composer, scene, camera, outlinePass]);
 
   useEffect(() => {
-    outlinePass.visibleEdgeColor.set(selectedObject ? '#ffff00' : '#ff0000');
+    outlinePass.visibleEdgeColor.set(selectedObjects.length > 0 ? '#ffff00' : '#ff0000');
     outlinePass.edgeGlow = 2;
     outlinePass.edgeThickness = 3;
-    outlinePass.selectedObjects = selectedObject ? [selectedObject] : [];
-  }, [outlinePass, selectedObject]);
+    outlinePass.selectedObjects = selectedObject ? [selectedObject] : selectedObjects;
+  }, [outlinePass, selectedObjects, selectedObject]);
 
   useFrame(() => {
     composer.render();
@@ -42,33 +47,58 @@ const MeshSelection = ({ selectedObject }) => {
         const selected = intersects[0].object;
         if (selected !== hoveredObjectRef.current) {
           hoveredObjectRef.current = selected;
-          outlinePass.selectedObjects = clickedObject === selected ? [] : [selected];
+          if (!selectedObjects.includes(selected)) {
+            outlinePass.selectedObjects = selectedObject ? [selectedObject] : [...selectedObjects, selected];
+          }
         }
       } else if (hoveredObjectRef.current) {
         hoveredObjectRef.current = null;
-        outlinePass.selectedObjects = clickedObject ? [clickedObject] : [];
       }
     }
   });
 
   useEffect(() => {
+    if (selectedMeshName) {
+      const selectedObject = scene.getObjectByName(selectedMeshName);
+      if (selectedObject) {
+        setSelectedObjects([selectedObject]);
+        outlinePass.selectedObjects = [selectedObject];
+        outlinePass.visibleEdgeColor.set('#ffff00');
+      } else {
+        setSelectedObjects([]);
+        outlinePass.selectedObjects = [];
+      }
+    } else {
+      setSelectedObjects([]);
+      outlinePass.selectedObjects = [];
+    }
+  }, [selectedMeshName, scene, outlinePass]);
+
+  useEffect(() => {
     const handleClick = (event) => {
       if (hoveredObjectRef.current) {
-        setClickedObject(hoveredObjectRef.current);
-        outlinePass.visibleEdgeColor.set('#ffff00');
-        console.log(hoveredObjectRef.current.name);
-        outlinePass.selectedObjects = [hoveredObjectRef.current];
+        const selectedObject = hoveredObjectRef.current;
+        if (selectedObjects.includes(selectedObject)) {
+          // Deselect if already selected
+          const filteredSelection = selectedObjects.filter(obj => obj !== selectedObject);
+          setSelectedObjects(filteredSelection);
+          outlinePass.selectedObjects = selectedObject ? [selectedObject] : filteredSelection;
+        } else {
+          // Select if not already selected
+          setSelectedObjects([...selectedObjects, selectedObject]);
+          outlinePass.selectedObjects = selectedObject ? [selectedObject] : [...selectedObjects, selectedObject];
 
-        const content = `Selected mesh: ${hoveredObjectRef.current.name}`;
-
-        const accessBar = document.getElementById('accessbar');
-        if (accessBar) {
-          accessBar.textContent = content;
+          // Example of accessing name for content
+          const content = `Selected mesh: ${selectedObject.name}`;
+          const accessBar = document.getElementById('accessbar');
+          if (accessBar) {
+            accessBar.textContent = content;
+          }
         }
+        outlinePass.visibleEdgeColor.set('#ffff00');
       } else {
-        setClickedObject(null);
-        outlinePass.selectedObjects = [];
-
+        setSelectedObjects([]);
+        outlinePass.selectedObjects = selectedObject ? [selectedObject] : [];
         const accessBar = document.getElementById('accessbar');
         if (accessBar) {
           accessBar.textContent = '';
@@ -78,7 +108,8 @@ const MeshSelection = ({ selectedObject }) => {
 
     window.addEventListener('click', handleClick);
     return () => window.removeEventListener('click', handleClick);
-  }, []);
+
+  }, [selectedObjects, selectedObject, scene, outlinePass]);
 
   return null;
 };

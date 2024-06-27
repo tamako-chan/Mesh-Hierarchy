@@ -1,61 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const MeshGrouping = ({ hierarchyRefs, createGroup, deleteGroup }) => {
-  const [selectedItems, setSelectedItems] = useState(new Set());
-  const [groupName, setGroupName] = useState('');
+const MeshGrouping = ({ selectedObjects, onGroupCreated }) => {
+  const groupSelectedMeshes = () => {
+    if (selectedObjects.length < 2) {
+      alert('Select at least two objects to create a group.');
+      return;
+    }
 
-  const handleItemClick = (uuid, event) => {
-    if (event.shiftKey) {
-      setSelectedItems((prev) => {
-        const newSelectedItems = new Set(prev);
-        if (newSelectedItems.has(uuid)) {
-          newSelectedItems.delete(uuid);
-        } else {
-          newSelectedItems.add(uuid);
+    const parentObject = selectedObjects[0];
+    const childrenObjects = selectedObjects.slice(1);
+
+    // Set parent-child relationship
+    childrenObjects.forEach(child => {
+      parentObject.add(child);
+    });
+
+    // Optionally, you can perform further operations or updates here
+
+    // Clear selection
+    onGroupCreated();
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === 'g' || event.key === 'G') {
+        const confirmGroup = window.confirm('Do you want to create a group of selected meshes?');
+        if (confirmGroup && selectedObjects.length > 0) {
+          groupSelectedMeshes();
         }
-        return newSelectedItems;
-      });
-    }
-  };
+      }
+    };
 
-  const handleCreateGroup = () => {
-    if (groupName && selectedItems.size > 0) {
-      createGroup(groupName, Array.from(selectedItems));
-      setGroupName('');
-      setSelectedItems(new Set());
-    }
-  };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
 
-  const handleDeleteGroup = (groupName) => {
-    deleteGroup(groupName);
-  };
+  }, [selectedObjects]);
 
-  return (
-    <div>
-      <input
-        type="text"
-        placeholder="Group Name"
-        value={groupName}
-        onChange={(e) => setGroupName(e.target.value)}
-      />
-      <button onClick={handleCreateGroup}>Create Group</button>
-      <div>
-        <h3>Groups:</h3>
-        {Object.keys(hierarchyRefs.current).map((key) => (
-          <div
-            key={key}
-            onClick={(e) => handleItemClick(key, e)}
-            style={{
-              cursor: 'pointer',
-              backgroundColor: selectedItems.has(key) ? 'lightblue' : 'transparent',
-            }}
-          >
-            {hierarchyRefs.current[key].current?.innerText}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default MeshGrouping;

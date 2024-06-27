@@ -1,13 +1,25 @@
-import React from 'react';
-import MeshSelection from "./meshselection";
-import Hierarchy from "./Hierarchy";
-import Model from "./Model";
+import React, { useState } from 'react';
+import MeshSelection from './meshselection'; // Assuming correct file name casing
+import Hierarchy from './Hierarchy';
+import Model from './Model';
+import MeshGrouping from './meshgrouping';
 
-export default function Scene({ importedScene, searchTerm, setSelectedItem }) {
+export default function Scene({ importedScene }) {
+  const [selectedMeshName, setSelectedMeshName] = useState(null);
+  const [selectedObjects, setSelectedObjects] = useState([]);
+
+  const handleItemClick = (name) => {
+    setSelectedMeshName(name);
+  };
+
   return (
     <>
-      <MeshSelection />
-      <Hierarchy searchTerm={searchTerm} setSelectedItem={setSelectedItem} />
+      <MeshSelection selectedMeshName={selectedMeshName} />
+      <MeshGrouping
+        selectedObjects={selectedObjects}
+        onGroupCreated={() => setSelectedObjects([])}
+      />
+      <Hierarchy onItemClick={handleItemClick} />
       <Model importedScene={importedScene} />
     </>
   );

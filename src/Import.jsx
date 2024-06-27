@@ -10,7 +10,7 @@ export const importModel = (file, onImport) => {
     loader.parse(contents, '', (gltf) => {
       let newName = prompt('Please enter a name for the model:');
       if (!newName || newName.trim() === '') {
-        newName = gltf.scene.name || 'Unnamed Scene'; 
+        newName = gltf.scene.name || 'Unnamed Scene'; // Use the original name or a default one
       }
       gltf.scene.name = newName;
       onImport(gltf.scene);
