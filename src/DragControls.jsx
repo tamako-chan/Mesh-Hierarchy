@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber';
 const DragControls = ({ selectedMesh }) => {
   const [dragging, setDragging] = useState(false);
   const [initialPosition, setInitialPosition] = useState(null);
-  const [axis, setAxis] = useState('x'); // Initialize with the desired axis (e.g., 'x', 'y', or 'z')
+  const [axis, setAxis] = useState('x'); 
 
   const handleMouseDown = (event) => {
     setDragging(true);
@@ -34,7 +34,6 @@ const DragControls = ({ selectedMesh }) => {
           selectedMesh.position.z = initialPosition.z + delta;
           break;
         default:
-          // Handle other cases if necessary
           break;
       }
     }
@@ -50,7 +49,7 @@ const DragControls = ({ selectedMesh }) => {
     };
   }, [dragging]);
 
-  return null; // You can customize this component further based on your requirements
+  return null; 
 };
 
 export default DragControls;
